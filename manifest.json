@@ -1,0 +1,10 @@
+{
+  "id": "dynalist-mover",
+  "name": "Dynalist Mover",
+  "version": "1.0.0",
+  "minAppVersion": "0.15.0",
+  "description": "Move selected lines up and down like Dynalist.",
+  "author": "Antigravity",
+  "authorUrl": "",
+  "isDesktopOnly": false
+}
