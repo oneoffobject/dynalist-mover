@@ -7,20 +7,20 @@ const DEFAULT_SETTINGS = {
     moveChildrenWithParent: false
 };
 class DynalistMover extends obsidian_1.Plugin {
-    async onload() {
-        await this.loadSettings();
+    onload() {
+        this.loadSettings();
         this.addSettingTab(new DynalistMoverSettingTab(this.app, this));
         this.registerEditorExtension(lineHighlightField);
         this.addCommand({
             id: 'move-lines-up',
-            name: 'Move selected lines UP',
+            name: 'Move selected lines up',
             editorCallback: (editor) => {
                 this.moveLines(editor, -1);
             }
         });
         this.addCommand({
             id: 'move-lines-down',
-            name: 'Move selected lines DOWN',
+            name: 'Move selected lines down',
             editorCallback: (editor) => {
                 this.moveLines(editor, 1);
             }

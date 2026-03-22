@@ -1,4 +1,4 @@
-import { Plugin, Editor, MarkdownView, App, PluginSettingTab, Setting } from 'obsidian';
+import { Plugin, Editor, App, PluginSettingTab, Setting } from 'obsidian';
 import { ViewPlugin, Decoration, DecorationSet, EditorView, ViewUpdate } from '@codemirror/view';
 import { RangeSetBuilder } from '@codemirror/state';
 
@@ -13,15 +13,15 @@ const DEFAULT_SETTINGS: DynalistMoverSettings = {
 export default class DynalistMover extends Plugin {
     settings!: DynalistMoverSettings;
 
-    async onload() {
-        await this.loadSettings();
+    onload() {
+        this.loadSettings();
 
         this.addSettingTab(new DynalistMoverSettingTab(this.app, this));
         this.registerEditorExtension(lineHighlightField);
 
         this.addCommand({
             id: 'move-lines-up',
-            name: 'Move selected lines UP',
+            name: 'Move selected lines up',
             editorCallback: (editor: Editor) => {
                 this.moveLines(editor, -1);
             }
@@ -29,7 +29,7 @@ export default class DynalistMover extends Plugin {
 
         this.addCommand({
             id: 'move-lines-down',
-            name: 'Move selected lines DOWN',
+            name: 'Move selected lines down',
             editorCallback: (editor: Editor) => {
                 this.moveLines(editor, 1);
             }
