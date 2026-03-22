@@ -4,7 +4,7 @@ const obsidian_1 = require("obsidian");
 const view_1 = require("@codemirror/view");
 const state_1 = require("@codemirror/state");
 const DEFAULT_SETTINGS = {
-    moveChildrenWithParent: false
+    moveChildrenWithParent: true
 };
 class DynalistMover extends obsidian_1.Plugin {
     onload() {

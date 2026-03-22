@@ -7,7 +7,7 @@ interface DynalistMoverSettings {
 }
 
 const DEFAULT_SETTINGS: DynalistMoverSettings = {
-    moveChildrenWithParent: false
+    moveChildrenWithParent: true
 }
 
 export default class DynalistMover extends Plugin {

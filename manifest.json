@@ -1,7 +1,7 @@
 {
   "id": "dynalist-mover",
   "name": "Dynalist Mover",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "minAppVersion": "0.15.0",
   "description": "Move selected lines up and down like Dynalist.",
   "author": "OneOffObject",
