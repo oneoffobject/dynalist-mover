@@ -23,7 +23,7 @@ Dynalist Mover is an Obsidian plugin that allows you to select multiple lines of
         
     - `Move selected lines down`
         
-3. **Recommended Setup**: For the best experience, assign hotkeys to these commands. Go to Settings > Hotkeys, search for "Dynalist Mover", and assign shortcut keys such as `Ctrl + Up` and `Ctrl + Down` (or `Alt + Up` / `Alt + Down` on Mac).
+3. **Recommended Setup**: For the best experience, assign hotkeys to these commands. Go to Settings > Hotkeys, search for "Dynalist Mover", and assign shortcut keys such as `Ctrl + Up` and `Ctrl + Down` (or `Option + Up` / `Option + Down` on Mac).
 
 
 ## Settings
