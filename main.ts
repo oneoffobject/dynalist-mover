@@ -13,8 +13,8 @@ const DEFAULT_SETTINGS: DynalistMoverSettings = {
 export default class DynalistMover extends Plugin {
     settings!: DynalistMoverSettings;
 
-    onload() {
-        this.loadSettings();
+    async onload() {
+        await this.loadSettings();
 
         this.addSettingTab(new DynalistMoverSettingTab(this.app, this));
         this.registerEditorExtension(lineHighlightField);

@@ -7,8 +7,8 @@ const DEFAULT_SETTINGS = {
     moveChildrenWithParent: true
 };
 class DynalistMover extends obsidian_1.Plugin {
-    onload() {
-        this.loadSettings();
+    async onload() {
+        await this.loadSettings();
         this.addSettingTab(new DynalistMoverSettingTab(this.app, this));
         this.registerEditorExtension(lineHighlightField);
         this.addCommand({
