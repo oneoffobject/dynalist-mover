@@ -25,6 +25,9 @@ Dynalist Mover is an Obsidian plugin that allows you to select multiple lines of
         
 3. **Recommended Setup**: For the best experience, assign hotkeys to these commands. Go to Settings > Hotkeys, search for "Dynalist Mover", and assign shortcut keys such as `Ctrl + Up` and `Ctrl + Down` (or `Option + Up` / `Option + Down` on Mac).
 
+> [!TIP]
+> If you are using the **Outliner plugin** simultaneously, the default hotkeys may conflict. We recommend assigning unique hotkeys to Dynalist Mover to avoid double-triggering.
+
 
 ## Settings
 

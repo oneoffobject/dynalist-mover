@@ -47,16 +47,32 @@ export default class DynalistMover extends Plugin {
         await this.saveData(this.settings);
     }
 
+    private getIndentLength(str: string): number {
+        const match = str.match(/^[ \t]*/);
+        if (!match) return 0;
+        const indentStr = match[0];
+        let length = 0;
+        for (let i = 0; i < indentStr.length; i++) {
+            if (indentStr[i] === '\t') {
+                length += 4;
+            } else {
+                length += 1;
+            }
+        }
+        return length;
+    }
+
     moveLines(editor: Editor, direction: number) {
         const selections = editor.listSelections();
         if (selections.length === 0) return;
         
         const selection = selections[0];
         
-        let from = selection.anchor;
-        let to = selection.head;
+        // Normalize selection to startLine and endLine
+        let from = selection.anchor.line < selection.head.line ? selection.anchor : selection.head;
+        let to = selection.anchor.line < selection.head.line ? selection.head : selection.anchor;
         
-        if (from.line > to.line || (from.line === to.line && from.ch > to.ch)) {
+        if (selection.anchor.line === selection.head.line && selection.anchor.ch > selection.head.ch) {
             from = selection.head;
             to = selection.anchor;
         }
@@ -64,99 +80,84 @@ export default class DynalistMover extends Plugin {
         let startLine = from.line;
         let endLine = to.line;
 
+        // If the selection ends at character 0 of the next line, don't include that line.
         if (startLine !== endLine && to.ch === 0) {
             endLine--;
         }
 
-        let finalEndLine = endLine;
+        // 1. Expand selection to include all children if moveChildrenWithParent is enabled
         if (this.settings.moveChildrenWithParent) {
-            const lastLineStr = editor.getLine(endLine);
-            const getIndentLength = (str: string) => {
-                const match = str.match(/^[ \t]*/);
-                return match ? match[0].length : 0;
-            };
-            const parentIndent = getIndentLength(lastLineStr);
-            
-            if (lastLineStr.trim().length > 0) {
-                for (let i = endLine + 1; i < editor.lineCount(); i++) {
-                    const lineStr = editor.getLine(i);
-                    const childIndent = getIndentLength(lineStr);
-                    
-                    if (lineStr.trim().length === 0) {
-                        break;
-                    }
-
-                    if (childIndent > parentIndent) {
-                        finalEndLine = i;
-                    } else {
-                        break;
-                    }
+            const lastLineIndent = this.getIndentLength(editor.getLine(endLine));
+            for (let i = endLine + 1; i < editor.lineCount(); i++) {
+                const lineStr = editor.getLine(i);
+                if (lineStr.trim().length === 0) break;
+                if (this.getIndentLength(lineStr) > lastLineIndent) {
+                    endLine = i;
+                } else {
+                    break;
                 }
             }
         }
-        endLine = finalEndLine;
 
-        const getIndentLength = (str: string) => {
-            const match = str.match(/^[ \t]*/);
-            return match ? match[0].length : 0;
-        };
+        const baseIndent = this.getIndentLength(editor.getLine(startLine));
 
-        if (direction === -1) {
+        if (direction === -1) { // MOVE UP
             if (startLine === 0) return;
 
-            let targetStart = startLine - 1;
-            if (this.settings.moveChildrenWithParent) {
-                const baseIndent = getIndentLength(editor.getLine(startLine));
-                while (targetStart > 0) {
-                    const lineStr = editor.getLine(targetStart);
-                    if (lineStr.trim().length === 0) break;
-                    if (getIndentLength(lineStr) > baseIndent) {
-                        targetStart--;
-                    } else {
-                        break;
-                    }
-                }
-            }
+            let targetLine = startLine - 1;
             
-            const blockFrom: string[] = [];
-            for (let i = targetStart; i < startLine; i++) {
-                blockFrom.push(editor.getLine(i));
+            // Skip over children of the previous sibling block
+            if (this.settings.moveChildrenWithParent) {
+                while (targetLine > 0 && this.getIndentLength(editor.getLine(targetLine)) > baseIndent) {
+                    targetLine--;
+                }
+                // targetLine is now the start of the previous sibling block or its parent
+            }
+
+            const blockToJumpOver: string[] = [];
+            for (let i = targetLine; i < startLine; i++) {
+                blockToJumpOver.push(editor.getLine(i));
             }
             const blockToMove: string[] = [];
             for (let i = startLine; i <= endLine; i++) {
                 blockToMove.push(editor.getLine(i));
             }
             
+            const replacement = blockToMove.join('\n') + '\n' + blockToJumpOver.join('\n');
             editor.replaceRange(
-                blockToMove.join('\n') + '\n' + blockFrom.join('\n'),
-                { line: targetStart, ch: 0 },
+                replacement,
+                { line: targetLine, ch: 0 },
                 { line: endLine, ch: editor.getLine(endLine).length }
             );
 
-            const linesMoved = startLine - targetStart;
+            const offset = startLine - targetLine;
             editor.setSelection(
-                { line: selection.anchor.line - linesMoved, ch: selection.anchor.ch },
-                { line: selection.head.line - linesMoved, ch: selection.head.ch }
+                { line: selection.anchor.line - offset, ch: selection.anchor.ch },
+                { line: selection.head.line - offset, ch: selection.head.ch }
             );
 
-        } else if (direction === 1) {
+        } else if (direction === 1) { // MOVE DOWN
             if (endLine === editor.lineCount() - 1) return;
 
-            let targetEnd = endLine + 1;
+            let nextLine = endLine + 1;
+            let targetLine = nextLine;
+
+            // Skip over children of the next sibling block
             if (this.settings.moveChildrenWithParent) {
-                const baseIndent = getIndentLength(editor.getLine(startLine));
-                const targetBaseIndent = getIndentLength(editor.getLine(targetEnd));
-                
-                if (targetBaseIndent >= baseIndent) {
-                    while (targetEnd < editor.lineCount() - 1) {
-                        const lineStr = editor.getLine(targetEnd + 1);
+                const nextIndent = this.getIndentLength(editor.getLine(nextLine));
+                if (nextIndent >= baseIndent) {
+                    for (let i = nextLine + 1; i < editor.lineCount(); i++) {
+                        const lineStr = editor.getLine(i);
                         if (lineStr.trim().length === 0) break;
-                        if (getIndentLength(lineStr) > targetBaseIndent) {
-                            targetEnd++;
+                        if (this.getIndentLength(lineStr) > nextIndent) {
+                            targetLine = i;
                         } else {
                             break;
                         }
                     }
+                } else {
+                    // Next line is a parent/ancestor. Only skip that line to become its first child.
+                    targetLine = nextLine;
                 }
             }
 
@@ -164,21 +165,22 @@ export default class DynalistMover extends Plugin {
             for (let i = startLine; i <= endLine; i++) {
                 blockToMove.push(editor.getLine(i));
             }
-            const blockTo: string[] = [];
-            for (let i = endLine + 1; i <= targetEnd; i++) {
-                blockTo.push(editor.getLine(i));
+            const blockToJumpOver: string[] = [];
+            for (let i = endLine + 1; i <= targetLine; i++) {
+                blockToJumpOver.push(editor.getLine(i));
             }
 
+            const replacement = blockToJumpOver.join('\n') + '\n' + blockToMove.join('\n');
             editor.replaceRange(
-                blockTo.join('\n') + '\n' + blockToMove.join('\n'),
+                replacement,
                 { line: startLine, ch: 0 },
-                { line: targetEnd, ch: editor.getLine(targetEnd).length }
+                { line: targetLine, ch: editor.getLine(targetLine).length }
             );
 
-            const linesMoved = targetEnd - endLine;
+            const offset = targetLine - endLine;
             editor.setSelection(
-                { line: selection.anchor.line + linesMoved, ch: selection.anchor.ch },
-                { line: selection.head.line + linesMoved, ch: selection.head.ch }
+                { line: selection.anchor.line + offset, ch: selection.anchor.ch },
+                { line: selection.head.line + offset, ch: selection.head.ch }
             );
         }
     }
