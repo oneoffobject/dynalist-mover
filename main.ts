@@ -22,6 +22,7 @@ export default class DynalistMover extends Plugin {
         this.addCommand({
             id: 'move-lines-up',
             name: 'Move selected lines up',
+            repeatable: true,
             editorCallback: (editor: Editor) => {
                 this.moveLines(editor, -1);
             }
@@ -30,6 +31,7 @@ export default class DynalistMover extends Plugin {
         this.addCommand({
             id: 'move-lines-down',
             name: 'Move selected lines down',
+            repeatable: true,
             editorCallback: (editor: Editor) => {
                 this.moveLines(editor, 1);
             }
@@ -111,7 +113,6 @@ export default class DynalistMover extends Plugin {
                 while (targetLine > 0 && this.getIndentLength(editor.getLine(targetLine)) > baseIndent) {
                     targetLine--;
                 }
-                // targetLine is now the start of the previous sibling block or its parent
             }
 
             const blockToJumpOver: string[] = [];
@@ -124,17 +125,19 @@ export default class DynalistMover extends Plugin {
             }
             
             const replacement = blockToMove.join('\n') + '\n' + blockToJumpOver.join('\n');
-            editor.replaceRange(
-                replacement,
-                { line: targetLine, ch: 0 },
-                { line: endLine, ch: editor.getLine(endLine).length }
-            );
-
             const offset = startLine - targetLine;
-            editor.setSelection(
-                { line: selection.anchor.line - offset, ch: selection.anchor.ch },
-                { line: selection.head.line - offset, ch: selection.head.ch }
-            );
+
+            editor.transaction({
+                changes: [{
+                    text: replacement,
+                    from: { line: targetLine, ch: 0 },
+                    to: { line: endLine, ch: editor.getLine(endLine).length }
+                }],
+                selections: [{
+                    from: { line: selection.anchor.line - offset, ch: selection.anchor.ch },
+                    to: { line: selection.head.line - offset, ch: selection.head.ch }
+                }]
+            });
 
         } else if (direction === 1) { // MOVE DOWN
             if (endLine === editor.lineCount() - 1) return;
@@ -156,7 +159,6 @@ export default class DynalistMover extends Plugin {
                         }
                     }
                 } else {
-                    // Next line is a parent/ancestor. Only skip that line to become its first child.
                     targetLine = nextLine;
                 }
             }
@@ -171,17 +173,19 @@ export default class DynalistMover extends Plugin {
             }
 
             const replacement = blockToJumpOver.join('\n') + '\n' + blockToMove.join('\n');
-            editor.replaceRange(
-                replacement,
-                { line: startLine, ch: 0 },
-                { line: targetLine, ch: editor.getLine(targetLine).length }
-            );
-
             const offset = targetLine - endLine;
-            editor.setSelection(
-                { line: selection.anchor.line + offset, ch: selection.anchor.ch },
-                { line: selection.head.line + offset, ch: selection.head.ch }
-            );
+
+            editor.transaction({
+                changes: [{
+                    text: replacement,
+                    from: { line: startLine, ch: 0 },
+                    to: { line: targetLine, ch: editor.getLine(targetLine).length }
+                }],
+                selections: [{
+                    from: { line: selection.anchor.line + offset, ch: selection.anchor.ch },
+                    to: { line: selection.head.line + offset, ch: selection.head.ch }
+                }]
+            });
         }
     }
 }
