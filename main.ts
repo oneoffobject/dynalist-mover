@@ -7,6 +7,16 @@ interface DynalistMoverSettings {
     tabSize: number;
 }
 
+interface EditorWithCodeMirror extends Editor {
+    cm?: {
+        state?: {
+            selection?: {
+                ranges?: readonly unknown[];
+            };
+        };
+    };
+}
+
 const DEFAULT_SETTINGS: DynalistMoverSettings = {
     moveChildrenWithParent: true,
     tabSize: 4
@@ -55,6 +65,11 @@ export default class DynalistMover extends Plugin {
         await this.saveData(this.settings);
     }
 
+    private getSelectionCount(editor: Editor): number {
+        const cmSelection = (editor as EditorWithCodeMirror).cm?.state?.selection;
+        return Math.max(editor.listSelections().length, cmSelection?.ranges?.length ?? 0);
+    }
+
     private getIndentLength(str: string): number {
         const match = str.match(/^[ \t]*/);
         if (!match) return 0;
@@ -72,9 +87,10 @@ export default class DynalistMover extends Plugin {
 
     moveLines(editor: Editor, direction: number) {
         const selections = editor.listSelections();
-        if (selections.length === 0) return;
-        if (selections.length > 1) {
-            new Notice('Dynalist Mover supports one selection at a time.');
+        const selectionCount = this.getSelectionCount(editor);
+        if (selectionCount === 0) return;
+        if (selectionCount > 1) {
+            new Notice('This command supports one selection at a time.');
             return;
         }
         

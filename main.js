@@ -41,6 +41,11 @@ class DynalistMover extends obsidian_1.Plugin {
     async saveSettings() {
         await this.saveData(this.settings);
     }
+    getSelectionCount(editor) {
+        var _a, _b, _c, _d;
+        const cmSelection = (_b = (_a = editor.cm) === null || _a === void 0 ? void 0 : _a.state) === null || _b === void 0 ? void 0 : _b.selection;
+        return Math.max(editor.listSelections().length, (_d = (_c = cmSelection === null || cmSelection === void 0 ? void 0 : cmSelection.ranges) === null || _c === void 0 ? void 0 : _c.length) !== null && _d !== void 0 ? _d : 0);
+    }
     getIndentLength(str) {
         const match = str.match(/^[ \t]*/);
         if (!match)
@@ -59,10 +64,11 @@ class DynalistMover extends obsidian_1.Plugin {
     }
     moveLines(editor, direction) {
         const selections = editor.listSelections();
-        if (selections.length === 0)
+        const selectionCount = this.getSelectionCount(editor);
+        if (selectionCount === 0)
             return;
-        if (selections.length > 1) {
-            new obsidian_1.Notice('Dynalist Mover supports one selection at a time.');
+        if (selectionCount > 1) {
+            new obsidian_1.Notice('This command supports one selection at a time.');
             return;
         }
         const selection = selections[0];
