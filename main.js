@@ -4,7 +4,8 @@ const obsidian_1 = require("obsidian");
 const view_1 = require("@codemirror/view");
 const state_1 = require("@codemirror/state");
 const DEFAULT_SETTINGS = {
-    moveChildrenWithParent: true
+    moveChildrenWithParent: true,
+    tabSize: 4
 };
 class DynalistMover extends obsidian_1.Plugin {
     async onload() {
@@ -32,6 +33,10 @@ class DynalistMover extends obsidian_1.Plugin {
     }
     async loadSettings() {
         this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+        const tabSize = Number(this.settings.tabSize);
+        this.settings.tabSize = Number.isFinite(tabSize)
+            ? Math.max(1, Math.min(8, Math.round(tabSize)))
+            : DEFAULT_SETTINGS.tabSize;
     }
     async saveSettings() {
         await this.saveData(this.settings);
@@ -44,7 +49,7 @@ class DynalistMover extends obsidian_1.Plugin {
         let length = 0;
         for (let i = 0; i < indentStr.length; i++) {
             if (indentStr[i] === '\t') {
-                length += 4;
+                length += this.settings.tabSize;
             }
             else {
                 length += 1;
@@ -56,6 +61,10 @@ class DynalistMover extends obsidian_1.Plugin {
         const selections = editor.listSelections();
         if (selections.length === 0)
             return;
+        if (selections.length > 1) {
+            new obsidian_1.Notice('Dynalist Mover supports one selection at a time.');
+            return;
+        }
         const selection = selections[0];
         // Normalize selection to startLine and endLine
         let from = selection.anchor.line < selection.head.line ? selection.anchor : selection.head;
@@ -183,6 +192,17 @@ class DynalistMoverSettingTab extends obsidian_1.PluginSettingTab {
             .setValue(this.plugin.settings.moveChildrenWithParent)
             .onChange(async (value) => {
             this.plugin.settings.moveChildrenWithParent = value;
+            await this.plugin.saveSettings();
+        }));
+        new obsidian_1.Setting(containerEl)
+            .setName('Tab size')
+            .setDesc('Number of spaces to treat as one tab when detecting indented child items.')
+            .addSlider(slider => slider
+            .setLimits(1, 8, 1)
+            .setValue(this.plugin.settings.tabSize)
+            .setDynamicTooltip()
+            .onChange(async (value) => {
+            this.plugin.settings.tabSize = value;
             await this.plugin.saveSettings();
         }));
     }

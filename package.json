@@ -1,15 +1,15 @@
 {
   "name": "dynalist-mover",
-  "version": "1.1.4",
+  "version": "1.1.5",
   "description": "Move selected lines up and down.",
   "main": "main.js",
   "scripts": {
     "build": "tsc"
   },
   "devDependencies": {
-    "@codemirror/state": "^6.6.0",
-    "@codemirror/view": "^6.40.0",
-    "obsidian": "latest",
-    "typescript": "latest"
+    "@codemirror/state": "6.6.0",
+    "@codemirror/view": "6.40.0",
+    "obsidian": "1.12.3",
+    "typescript": "5.9.3"
   }
 }

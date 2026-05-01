@@ -1,13 +1,15 @@
-import { Plugin, Editor, App, PluginSettingTab, Setting } from 'obsidian';
+import { Plugin, Editor, App, PluginSettingTab, Setting, Notice } from 'obsidian';
 import { ViewPlugin, Decoration, DecorationSet, EditorView, ViewUpdate } from '@codemirror/view';
 import { RangeSetBuilder } from '@codemirror/state';
 
 interface DynalistMoverSettings {
     moveChildrenWithParent: boolean;
+    tabSize: number;
 }
 
 const DEFAULT_SETTINGS: DynalistMoverSettings = {
-    moveChildrenWithParent: true
+    moveChildrenWithParent: true,
+    tabSize: 4
 }
 
 export default class DynalistMover extends Plugin {
@@ -43,6 +45,10 @@ export default class DynalistMover extends Plugin {
 
     async loadSettings() {
         this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+        const tabSize = Number(this.settings.tabSize);
+        this.settings.tabSize = Number.isFinite(tabSize)
+            ? Math.max(1, Math.min(8, Math.round(tabSize)))
+            : DEFAULT_SETTINGS.tabSize;
     }
 
     async saveSettings() {
@@ -56,7 +62,7 @@ export default class DynalistMover extends Plugin {
         let length = 0;
         for (let i = 0; i < indentStr.length; i++) {
             if (indentStr[i] === '\t') {
-                length += 4;
+                length += this.settings.tabSize;
             } else {
                 length += 1;
             }
@@ -67,6 +73,10 @@ export default class DynalistMover extends Plugin {
     moveLines(editor: Editor, direction: number) {
         const selections = editor.listSelections();
         if (selections.length === 0) return;
+        if (selections.length > 1) {
+            new Notice('Dynalist Mover supports one selection at a time.');
+            return;
+        }
         
         const selection = selections[0];
         
@@ -209,6 +219,18 @@ class DynalistMoverSettingTab extends PluginSettingTab {
                 .setValue(this.plugin.settings.moveChildrenWithParent)
                 .onChange(async (value) => {
                     this.plugin.settings.moveChildrenWithParent = value;
+                    await this.plugin.saveSettings();
+                }));
+
+        new Setting(containerEl)
+            .setName('Tab size')
+            .setDesc('Number of spaces to treat as one tab when detecting indented child items.')
+            .addSlider(slider => slider
+                .setLimits(1, 8, 1)
+                .setValue(this.plugin.settings.tabSize)
+                .setDynamicTooltip()
+                .onChange(async (value) => {
+                    this.plugin.settings.tabSize = value;
                     await this.plugin.saveSettings();
                 }));
     }
