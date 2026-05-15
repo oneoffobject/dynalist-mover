@@ -54,7 +54,8 @@ export default class DynalistMover extends Plugin {
     }
 
     async loadSettings() {
-        this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+        const loadedData = (await this.loadData()) as Partial<DynalistMoverSettings> | null;
+        this.settings = Object.assign({}, DEFAULT_SETTINGS, loadedData);
         const tabSize = Number(this.settings.tabSize);
         this.settings.tabSize = Number.isFinite(tabSize)
             ? Math.max(1, Math.min(8, Math.round(tabSize)))

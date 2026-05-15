@@ -32,7 +32,8 @@ class DynalistMover extends obsidian_1.Plugin {
     onunload() {
     }
     async loadSettings() {
-        this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+        const loadedData = (await this.loadData());
+        this.settings = Object.assign({}, DEFAULT_SETTINGS, loadedData);
         const tabSize = Number(this.settings.tabSize);
         this.settings.tabSize = Number.isFinite(tabSize)
             ? Math.max(1, Math.min(8, Math.round(tabSize)))

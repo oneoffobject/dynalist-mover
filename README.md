@@ -36,27 +36,7 @@ Dynalist Mover is an Obsidian plugin that allows you to select multiple lines of
 
 ## Installation
 
-### Install using BRAT (Available Now)
-
-If you want to try the plugin before it's officially available:
-
-1. Install the [BRAT](https://github.com/TfTHacker/obsidian42-brat) plugin from the Community Plugins.
-    
-2. In the BRAT settings, click on **Add Beta plugin**.
-    
-3. Enter the repository URL: `https://github.com/oneoffobject/dynalist-mover`
-    
-4. Go to **Community plugins** in your Obsidian settings and enable "Dynalist Mover".
-
-
-### From Obsidian Community Plugins (Coming Soon)
-
-_(Currently awaiting approval to be added to the official community plugins list.)_
-
 1. Open Obsidian **Settings**.
-    
 2. Go to **Community plugins** and turn off Safe Mode.
-    
 3. Click on **Browse** and search for "Dynalist Mover".
-    
 4. Click **Install** and then enable it in your plugin list.

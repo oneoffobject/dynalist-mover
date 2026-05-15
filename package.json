@@ -1,6 +1,6 @@
 {
   "name": "dynalist-mover",
-  "version": "1.1.5",
+  "version": "1.1.6",
   "description": "Move selected lines up and down.",
   "main": "main.js",
   "scripts": {

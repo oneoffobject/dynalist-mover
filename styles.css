@@ -1,3 +1,3 @@
-.cm-line.dynalist-highlight-line {
-    background-color: rgba(65, 137, 224, 0.1) !important;
+.markdown-source-view.mod-cm6 .cm-content > .cm-line.dynalist-highlight-line {
+    background-color: rgba(65, 137, 224, 0.1);
 }
